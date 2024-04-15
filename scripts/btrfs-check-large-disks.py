@@ -17,6 +17,8 @@ class LsblkOutput(TypedDict):
 
 def unmount_device(device: Device):
     for mountpoint in device["mountpoints"]:
+        if mountpoint is None:
+            continue
         print(f"--- Unmounting {mountpoint}")
         run(args=("umount", mountpoint), check=True)
 
