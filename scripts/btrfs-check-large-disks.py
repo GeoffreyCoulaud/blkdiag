@@ -17,13 +17,13 @@ class LsblkOutput(TypedDict):
 
 def unmount_device(device: Device):
     for mountpoint in device["mountpoints"]:
-        print(f"Unmounting {mountpoint}")
+        print(f"--- Unmounting {mountpoint}")
         run(args=("umount", mountpoint), check=True)
 
 
 def check_device(device: Device):
     name = device["name"]
-    print(f"Checking {name}")
+    print(f"--- Checking {name}")
     run(args=("btrfs", "check", f"/dev/{name}"), check=True)
 
 
@@ -35,9 +35,16 @@ def unmount_and_check_device(device: Device):
 def get_block_devices() -> list[Device]:
     lsblk_output: LsblkOutput = json.loads(
         run(
-            args=("lsblk", "--bytes", "--json", "--output", "NAME,SIZE,MOUNTPOINTS"),
+            args=(
+                "lsblk",
+                "--bytes",
+                "--json",
+                "--output",
+                "NAME,SIZE,FSTYPE,MOUNTPOINTS",
+            ),
             capture_output=True,
             text=True,
+            check=True,
         ).stdout
     )
     return lsblk_output["blockdevices"]
