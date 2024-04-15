@@ -19,22 +19,22 @@ def unmount_device(device: Device):
     for mountpoint in device["mountpoints"]:
         if mountpoint is None:
             continue
-        print(f"--- Unmounting {mountpoint}")
+        print(f"Unmounting {mountpoint}")
         run(args=("umount", mountpoint), check=True)
 
 
 def check_device(device: Device):
     name = device["name"]
-    print(f"--- Checking {name}")
+    print(f"Checking {name}")
     output = run(
         args=("btrfs", "check", f"/dev/{name}"),
         capture_output=True,
         text=True,
     ).stdout
     if "no error found" in output:
-        print(f"--- {name} OK, no errors found")
+        print(f"→ {name} OK, no errors found")
     else:
-        print(f"--- {name} ERROR, errors found")
+        print(f"→ {name} ERROR, errors found")
         print(output)
         exit(1)
 
@@ -76,6 +76,9 @@ def bytes_from_human(human: str) -> int:
 
 
 def main():
+    # Get the skipped device names
+    skipped_device_names = getenv("SKIP_DEVICES", "").split(",")
+
     # Get the filter min size
     min_size_human_default = "1T"
     min_size_human = getenv("MIN_SIZE", min_size_human_default)
@@ -87,7 +90,9 @@ def main():
     for device in get_block_devices():
         is_wrong_type = device["fstype"] != "btrfs"
         is_too_small = int(device["size"]) < min_size
-        if is_wrong_type or is_too_small:
+        is_skipped = device["name"] in skipped_device_names
+        if is_wrong_type or is_too_small or is_skipped:
+            print(f"Skipping {device['name']}")
             continue
         unmount_and_check_device(device)
 
