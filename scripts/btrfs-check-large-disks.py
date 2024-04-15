@@ -28,7 +28,6 @@ def check_device(device: Device):
     print(f"--- Checking {name}")
     output = run(
         args=("btrfs", "check", f"/dev/{name}"),
-        check=True,
         capture_output=True,
         text=True,
     ).stdout
