@@ -1,6 +1,6 @@
 import json
 from os import getenv
-from subprocess import run
+from subprocess import PIPE, STDOUT, run
 from typing import TypedDict
 
 
@@ -26,16 +26,17 @@ def unmount_device(device: Device):
 def check_device(device: Device):
     name = device["name"]
     print(f"Checking {name}")
-    output = run(
+    process = run(
         args=("btrfs", "check", f"/dev/{name}"),
-        capture_output=True,
+        stderr=STDOUT,
+        stdout=PIPE,
         text=True,
-    ).stdout
-    if "no error found" in output:
+    )
+    if "no error found" in process.stdout:
         print(f"→ {name} OK, no errors found")
     else:
         print(f"→ {name} ERROR, errors found")
-        print(output)
+        print(process.stdout)
         exit(1)
 
 
