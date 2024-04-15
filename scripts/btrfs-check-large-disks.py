@@ -24,7 +24,18 @@ def unmount_device(device: Device):
 def check_device(device: Device):
     name = device["name"]
     print(f"--- Checking {name}")
-    run(args=("btrfs", "check", f"/dev/{name}"), check=True)
+    output = run(
+        args=("btrfs", "check", f"/dev/{name}"),
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    if "no error found" in output:
+        print(f"--- {name} OK, no errors found")
+    else:
+        print(f"--- {name} ERROR, errors found")
+        print(output)
+        exit(1)
 
 
 def unmount_and_check_device(device: Device):
