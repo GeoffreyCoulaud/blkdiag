@@ -196,7 +196,7 @@ def main():
 
     # Get the force flag
     try:
-        check_type = CheckType(getenv("CHECK_TYPE", CheckType.BTRFS_CHECK_RO))
+        check_type = CheckType(getenv("CHECK", CheckType.BTRFS_CHECK_RO))
     except ValueError:
         print(f"Invalid check type: {check_type}")
         print(f"Valid check types: {', '.join(CheckType)}")
