@@ -101,7 +101,7 @@ def btrfs_check_read_only_device(device: Device) -> bool:
 def check_write_device(device: Device) -> bool:
 
     mount_command = ("mount", f"/dev/{device['name']}", mountpoint)
-    test_file = f"{mountpoint}/test"
+    test_file = f"{mountpoint}/geoffrey-check-file.txt"
     written_text = "test"
     umount_command = ("umount", mountpoint)
 
@@ -194,7 +194,10 @@ def main():
         min_size_human = min_size_human[:-1]
     min_size = bytes_from_human(min_size_human)
 
-    # Get the force flag
+    # Get the allowed file system types
+    allowed_fstypes = getenv("FSTYPES", "btrfs").split(",")
+
+    # Get the type of check to perform
     try:
         check_type = CheckType(getenv("CHECK", CheckType.BTRFS_CHECK_RO))
     except ValueError:
@@ -207,10 +210,10 @@ def main():
     # Check all btrfs devices of at least min_size
     for device in get_block_devices():
         # Filter drives
-        is_wrong_type = device["fstype"] != "btrfs"
+        is_wrong_type = device["fstype"] not in allowed_fstypes
         is_too_small = int(device["size"]) < min_size
-        is_skipped = device["name"] in skipped_device_names
-        if is_wrong_type or is_too_small or is_skipped:
+        is_name_skipped = device["name"] in skipped_device_names
+        if is_wrong_type or is_too_small or is_name_skipped:
             print(f"Skipping {device['name']}")
             continue
         # Run the check
