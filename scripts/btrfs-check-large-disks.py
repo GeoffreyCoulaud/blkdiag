@@ -31,8 +31,8 @@ class CheckUmountError(Exception):
 
 
 class CheckType(StrEnum):
-    BTRFS_RO = "BTRFS_CHECK_RO"
-    BTRFS = "BTRFS_CHECK"
+    BTRFS_RO = "BTRFS_RO"
+    BTRFS = "BTRFS"
     WRITE = "WRITE"
 
 
