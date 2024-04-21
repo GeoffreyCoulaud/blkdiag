@@ -82,7 +82,6 @@ def btrfs_check_device(device: Device, force: bool = False) -> bool:
 
     # Output
     if "no error found" in process.stdout:
-        print(f"→ {name} OK, no errors found")
         return True
     else:
         print(f"→ {name} ERROR, errors found")
@@ -145,8 +144,6 @@ def check_write_device(device: Device) -> bool:
         print(f"Failed to write to {device['name']}")
         print_exception(e)
         return False
-
-    print(f"→ {device['name']} OK")
     return True
 
 
@@ -205,7 +202,11 @@ def main():
         exit(1)
     print(f"Running check: {check_type}")
 
+    # Get the exit_on_fail flag
+    exit_on_fail = getenv("EXIT_ON_FAIL", "n").lower() in ("true", "1", "y")
+
     # Check all btrfs devices of at least min_size
+    n_failed = 0
     for device in get_block_devices():
         # Filter drives
         is_wrong_type = device["fstype"] not in allowed_fstypes
@@ -221,9 +222,20 @@ def main():
             CheckType.WRITE: check_write_device,
         }
         check = check_function_map[check_type]
-        if not check(device):
-            print(f"Check failed for {device['name']} ({device['serial']})")
-            exit(1)
+        device_human_name = f"{device['name']} ({device['serial']})"
+        if check(device):
+            print(f"Check passed for {device_human_name}")
+        else:
+            print(f"Check failed for {device_human_name}")
+            if exit_on_fail:
+                exit(1)
+            n_failed += 1
+
+    # Exit with an appropriate code
+    if n_failed == 0:
+        exit(0)
+    else:
+        exit(1)
 
 
 if __name__ == "__main__":
