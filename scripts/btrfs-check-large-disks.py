@@ -100,13 +100,12 @@ def btrfs_check_read_only_device(device: Device) -> bool:
 
 def check_write_device(device: Device) -> bool:
 
-    mount_command = ("mount", f"/dev/{device['name']}", mountpoint)
-    test_file = f"{mountpoint}/geoffrey-check-file.txt"
-    written_text = "test"
-    umount_command = ("umount", mountpoint)
-
     # Create a temporary directory
     with TemporaryDirectory() as mountpoint:
+        mount_command = ("mount", f"/dev/{device['name']}", mountpoint)
+        test_file = f"{mountpoint}/geoffrey-check-file.txt"
+        written_text = "test"
+        umount_command = ("umount", mountpoint)
         try:
             # Mount the device
             try:
