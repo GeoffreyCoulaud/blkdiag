@@ -8,6 +8,7 @@ class Device(TypedDict):
     name: str
     size: str
     fstype: str
+    serial: str
     mountpoints: list[str]
 
 
@@ -25,7 +26,8 @@ def unmount_device(device: Device):
 
 def check_device(device: Device, force: bool = False):
     name = device["name"]
-    print(f"Checking {name}")
+    serial = device["serial"]
+    print(f"Checking {name} ({serial})")
 
     # Build the args
     args_base = ["btrfs", "check"]
@@ -67,7 +69,7 @@ def get_block_devices() -> list[Device]:
                 "--bytes",
                 "--json",
                 "--output",
-                "NAME,SIZE,FSTYPE,MOUNTPOINTS",
+                "NAME,SIZE,FSTYPE,SERIAL,MOUNTPOINTS",
             ),
             capture_output=True,
             text=True,
