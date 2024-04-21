@@ -7,27 +7,34 @@ from tempfile import TemporaryDirectory
 from typing import TypedDict
 
 
-class CheckMountError(Exception):
+class CheckError(Exception):
+    pass
+
+    def __str__(self) -> str:
+        return self.__class__.__name__
+
+
+class CheckMountError(CheckError):
     pass
 
 
-class CheckCreateError(Exception):
+class CheckCreateError(CheckError):
     pass
 
 
-class CheckWriteError(Exception):
+class CheckWriteError(CheckError):
     pass
 
 
-class CheckReadError(Exception):
+class CheckReadError(CheckError):
     pass
 
 
-class CheckRemoveError(Exception):
+class CheckRemoveError(CheckError):
     pass
 
 
-class CheckUmountError(Exception):
+class CheckUmountError(CheckError):
     pass
 
 
@@ -137,7 +144,7 @@ def check_write_device(device: Device) -> bool:
             unlink(test_file_path)
         except OSError as e:
             raise CheckRemoveError() from e
-    except Exception as e:
+    except CheckError as e:
         print(f"Failed to write to {device['name']}")
         print(e)
         return False
