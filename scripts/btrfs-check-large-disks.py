@@ -204,8 +204,7 @@ def main():
         print(f"Invalid check type: {env_check}")
         print(f"Valid check types: {', '.join(CheckType)}")
         exit(1)
-
-    print("Force mode is enabled, not unmounting devices.")
+    print(f"Running check: {check_type}")
 
     # Check all btrfs devices of at least min_size
     for device in get_block_devices():
