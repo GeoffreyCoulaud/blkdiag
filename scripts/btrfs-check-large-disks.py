@@ -1,6 +1,7 @@
 import json
 from enum import StrEnum
 from os import getenv, unlink
+from pathlib import Path
 from subprocess import PIPE, STDOUT, CalledProcessError, run
 from tempfile import TemporaryDirectory
 from typing import TypedDict
@@ -101,51 +102,45 @@ def btrfs_check_read_only_device(device: Device) -> bool:
 def check_write_device(device: Device) -> bool:
 
     # Create a temporary directory
-    with TemporaryDirectory() as mountpoint:
-        mount_command = ("mount", f"/dev/{device['name']}", mountpoint)
-        test_file = f"{mountpoint}/geoffrey-check-file.txt"
-        written_text = "test"
-        umount_command = ("umount", mountpoint)
+    try:
+        mount_point = Path(device["mountpoints"][0])
+    except IndexError:
+        print(f"Skipping {device['name']}, no mount point")
+        return False
+
+    test_file_path = mount_point / "geoffrey-check-file.txt"
+    written_text = "test"
+
+    try:
+        # Create a test file
         try:
-            # Mount the device
-            try:
-                run(args=mount_command, check=True)
-            except CalledProcessError as e:
-                raise CheckMountError() from e
-            # Create a test file
-            try:
-                open(test_file, "x").close()
-            except FileExistsError:
-                print(f"WARNING: Test file already exists")
-            except IOError as e:
-                raise CheckCreateError() from e
-            # Write to the test file
-            try:
-                with open(test_file, "w") as file:
-                    file.write(written_text)
-            except OSError as e:
-                raise CheckWriteError() from e
-            # Read the test file
-            try:
-                with open(test_file, "r") as file:
-                    if not file.read() == written_text:
-                        raise CheckReadError()
-            except OSError as e:
-                raise CheckReadError() from e
-            # Remove the test file
-            try:
-                unlink(test_file)
-            except OSError as e:
-                raise CheckRemoveError() from e
-            # Unmount the device
-            try:
-                run(args=umount_command, check=True)
-            except CalledProcessError as e:
-                raise CheckUmountError() from e
-        except Exception as e:
-            print(f"Failed to write to {device['name']}")
-            print(e)
-            return False
+            open(test_file_path, "x").close()
+        except FileExistsError:
+            print(f"WARNING: Test file already exists")
+        except IOError as e:
+            raise CheckCreateError() from e
+        # Write to the test file
+        try:
+            with open(test_file_path, "w") as file:
+                file.write(written_text)
+        except OSError as e:
+            raise CheckWriteError() from e
+        # Read the test file
+        try:
+            with open(test_file_path, "r") as file:
+                if not file.read() == written_text:
+                    raise CheckReadError()
+        except OSError as e:
+            raise CheckReadError() from e
+        # Remove the test file
+        try:
+            unlink(test_file_path)
+        except OSError as e:
+            raise CheckRemoveError() from e
+    except Exception as e:
+        print(f"Failed to write to {device['name']}")
+        print(e)
+        return False
 
     print(f"→ {device['name']} OK")
     return True
