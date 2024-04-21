@@ -197,10 +197,11 @@ def main():
     allowed_fstypes = getenv("FSTYPES", "btrfs").split(",")
 
     # Get the type of check to perform
+    env_check = getenv("CHECK", CheckType.BTRFS_RO)
     try:
-        check_type = CheckType(getenv("CHECK", CheckType.BTRFS_RO))
+        check_type = CheckType(env_check)
     except ValueError:
-        print(f"Invalid check type: {check_type}")
+        print(f"Invalid check type: {env_check}")
         print(f"Valid check types: {', '.join(CheckType)}")
         exit(1)
 
