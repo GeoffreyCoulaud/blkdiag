@@ -2,16 +2,13 @@ import json
 from enum import StrEnum
 from os import getenv, unlink
 from pathlib import Path
-from subprocess import PIPE, STDOUT, CalledProcessError, run
-from tempfile import TemporaryDirectory
+from subprocess import PIPE, STDOUT, run
+from traceback import print_exception
 from typing import TypedDict
 
 
 class CheckError(Exception):
     pass
-
-    def __str__(self) -> str:
-        return self.__class__.__name__
 
 
 class CheckMountError(CheckError):
@@ -146,7 +143,7 @@ def check_write_device(device: Device) -> bool:
             raise CheckRemoveError() from e
     except CheckError as e:
         print(f"Failed to write to {device['name']}")
-        print(e)
+        print_exception(e)
         return False
 
     print(f"→ {device['name']} OK")
