@@ -222,7 +222,7 @@ def main():
         }
         check = check_function_map[check_type]
         if not check(device):
-            print(f"Check failed for {device['name']}, exiting")
+            print(f"Check failed for {device['name']} ({device['serial']})")
             exit(1)
 
 
