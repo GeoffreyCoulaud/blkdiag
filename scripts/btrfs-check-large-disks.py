@@ -31,8 +31,8 @@ class CheckUmountError(Exception):
 
 
 class CheckType(StrEnum):
-    BTRFS_CHECK_RO = "BTRFS_CHECK_RO"
-    BTRFS_CHECK = "BTRFS_CHECK"
+    BTRFS_RO = "BTRFS_CHECK_RO"
+    BTRFS = "BTRFS_CHECK"
     WRITE = "WRITE"
 
 
@@ -198,7 +198,7 @@ def main():
 
     # Get the type of check to perform
     try:
-        check_type = CheckType(getenv("CHECK", CheckType.BTRFS_CHECK_RO))
+        check_type = CheckType(getenv("CHECK", CheckType.BTRFS_RO))
     except ValueError:
         print(f"Invalid check type: {check_type}")
         print(f"Valid check types: {', '.join(CheckType)}")
@@ -217,8 +217,8 @@ def main():
             continue
         # Run the check
         check_function_map = {
-            CheckType.BTRFS_CHECK_RO: btrfs_check_read_only_device,
-            CheckType.BTRFS_CHECK: unmount_and_btrfs_check_device,
+            CheckType.BTRFS_RO: btrfs_check_read_only_device,
+            CheckType.BTRFS: unmount_and_btrfs_check_device,
             CheckType.WRITE: check_write_device,
         }
         check = check_function_map[check_type]
