@@ -23,21 +23,35 @@ def unmount_device(device: Device):
         run(args=("umount", mountpoint), check=True)
 
 
-def check_device(device: Device):
+def check_device(device: Device, force: bool = False):
     name = device["name"]
     print(f"Checking {name}")
+
+    # Build the args
+    args_base = ["btrfs", "check"]
+    args_force = ["--force"] if force else []
+    args_device = [f"/dev/{name}"]
+    args = args_base + args_force + args_device
+
+    # Run the command
     process = run(
-        args=("btrfs", "check", f"/dev/{name}"),
+        args=args,
         stderr=STDOUT,
         stdout=PIPE,
         text=True,
     )
+
+    # Output
     if "no error found" in process.stdout:
         print(f"→ {name} OK, no errors found")
     else:
         print(f"→ {name} ERROR, errors found")
         print(process.stdout)
         exit(1)
+
+
+def check_read_only_device(device: Device):
+    check_device(device, force=True)
 
 
 def unmount_and_check_device(device: Device):
@@ -87,6 +101,11 @@ def main():
         min_size_human = min_size_human[:-1]
     min_size = bytes_from_human(min_size_human)
 
+    # Get the force flag
+    force = getenv("FORCE", "false").lower() in ("true", "1", "y")
+    if force:
+        print("Force mode is enabled, not unmounting devices.")
+
     # Check all btrfs devices of at least min_size
     for device in get_block_devices():
         is_wrong_type = device["fstype"] != "btrfs"
@@ -95,7 +114,10 @@ def main():
         if is_wrong_type or is_too_small or is_skipped:
             print(f"Skipping {device['name']}")
             continue
-        unmount_and_check_device(device)
+        if force:
+            check_read_only_device(device)
+        else:
+            unmount_and_check_device(device)
 
 
 if __name__ == "__main__":
