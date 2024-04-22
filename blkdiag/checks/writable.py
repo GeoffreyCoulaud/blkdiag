@@ -1,6 +1,5 @@
 from os import unlink
 from pathlib import Path
-from traceback import print_exception
 
 from blkdiag.checks.check import Check, CheckFailure, CheckSuccess
 from blkdiag.errors import (
@@ -24,7 +23,7 @@ class WritableCheck(Check):
         try:
             return Path(device["mountpoints"][0])
         except IndexError:
-            raise CheckNoMountPointError("No mount point") from None
+            raise CheckNoMountPointError("No mount point")
 
     def __create_file(self, path: Path) -> None:
         try:

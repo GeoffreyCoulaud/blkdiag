@@ -10,7 +10,6 @@ class BtrfsCheck(Check):
     def _btrfs_check_device(self, device: Device, force: bool = False) -> CheckResult:
         name = device["name"]
         serial = device["serial"]
-        print(f"Checking {name} ({serial})")
 
         # Build the args
         args_base = ["btrfs", "check"]
