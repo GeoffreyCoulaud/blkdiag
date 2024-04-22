@@ -37,7 +37,7 @@ class Args(Namespace):
     min_size: int
     fstypes: list[str]
     exit_on_fail: bool
-    check: str
+    checks: list[str]
 
 
 def parse_arguments() -> Args:
@@ -68,9 +68,11 @@ def parse_arguments() -> Args:
         help="Exit immediately on first failure",
     )
     parser.add_argument(
-        "check",
+        "checks",
+        nargs="+",
         choices=checks.keys(),
-        help="Type of check to perform",
+        type=list[str],
+        help="Type of checks to perform",
     )
     return parser.parse_args()
 
@@ -96,10 +98,11 @@ def main():
     devices = get_block_devices()
 
     # Run the checks
-    check: Check = checks[args.check]()
-    results: list[tuple[Device, CheckResult]] = []
+    selected_checks = [checks[check]() for check in args.checks]
+    results: list[tuple[Device, str, CheckResult]] = []
     print(f"Running check: {check.get_check_type()}")
     for device in devices:
+
         device_human_name = device_to_human(device)
 
         # Skip devices that don't meet the criteria
@@ -109,33 +112,37 @@ def main():
             print(f"Skipping {device_human_name}")
             continue
 
-        # Run the check
-        print(f"Checking {device_human_name}")
-        result = check.run(device)
+        # run selected checks on device
+        for check in selected_checks:
 
-        # Store the result
-        results.append((device, result))
-        match result:
-            case CheckSuccess():
-                print("Check passed")
-            case CheckFailure():
-                print("Check failed")
-                if args.exit_on_fail:
-                    break
+            # Run the check
+            check_type = check.get_check_type()
+            print(f"Checking {check_type} for {device_human_name}")
+            result = check.run(device)
+
+            # Store the result
+            results.append((device, check_type, result))
+            match result:
+                case CheckSuccess():
+                    print("Check passed")
+                case CheckFailure():
+                    print("Check failed")
+                    if args.exit_on_fail:
+                        break
 
     # Early exit if all checks passed
     if len(results) == 0:
         print("No check ran")
         exit(0)
-    if all((result for _device, result in results)):
+    if all((result for (_, _, result) in results)):
         print(f"Ran {len(results)} checks, all passed")
         exit(0)
 
     # Report failed devices
     print("Some checks failed:")
-    for device, result in results:
+    for device, check_type, result in results:
         device_human_name = device_to_human(device)
-        print(f"{device_human_name}: {str(result)}")
+        print(f"{device_human_name} {check_type}: {str(result)}")
     exit(1)
 
 
