@@ -112,6 +112,7 @@ def main():
         result = check.run(device)
 
         # Store the result
+        result[device] = result
         match result:
             case CheckSuccess():
                 print("Check passed")
@@ -119,7 +120,6 @@ def main():
                 print("Check failed")
                 if args.exit_on_fail:
                     break
-                result[device] = result
 
     # Early exit if all checks passed
     if len(results) == 0:
