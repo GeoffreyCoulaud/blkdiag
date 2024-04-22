@@ -2,19 +2,18 @@ from argparse import ArgumentParser, Namespace
 from os import getenv
 
 from checks.btrfs import BtrfsReadOnlyForceCheck, BtrfsUnmountCheck
-from checks.check import AbstractCheck, CheckFailure, CheckResult, CheckSuccess
+from checks.check import Check, CheckFailure, CheckResult, CheckSuccess
 from checks.writable import WritableCheck
 from lsblk import Device, get_block_devices
 
-KILOBYTE = 1024
-MEGABYTE = KILOBYTE**2
-GIGABYTE = KILOBYTE**3
-TERABYTE = KILOBYTE**4
-
 
 def bytes_from_human(human: str) -> int:
-    suffix = human[-1].upper()
+    KILOBYTE = 1024
+    MEGABYTE = KILOBYTE**2
+    GIGABYTE = KILOBYTE**3
+    TERABYTE = KILOBYTE**4
     suffixes = {"K": KILOBYTE, "M": MEGABYTE, "G": GIGABYTE, "T": TERABYTE}
+    suffix = human[-1].upper()
     multiplier = suffixes[suffix]
     return int(human[:-1]) * multiplier
 
@@ -23,9 +22,9 @@ def device_to_human(device: Device) -> str:
     return f"{device['name']} ({device['serial']})"
 
 
-checks: dict[str, AbstractCheck] = {
-    klass.get_check_type(): klass
-    for klass in (
+checks: dict[str, Check] = {
+    check.get_check_type(): check
+    for check in (
         BtrfsReadOnlyForceCheck,
         BtrfsUnmountCheck,
         WritableCheck,
@@ -38,7 +37,7 @@ class Args(Namespace):
     min_size: int
     fstypes: list[str]
     exit_on_fail: bool
-    check: AbstractCheck
+    check: Check
 
 
 def parse_arguments() -> Args:

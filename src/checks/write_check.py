@@ -2,7 +2,7 @@ from os import unlink
 from pathlib import Path
 from traceback import print_exception
 
-from checks.check import Check, CheckFailure, CheckSuccess
+from checks.check import Check
 from errors import (
     CheckCreateError,
     CheckError,
@@ -61,5 +61,7 @@ class WritableCheck(Check):
             self.__read_from_file(test_file_path, written_text)
             self.__remove_file(test_file_path)
         except CheckError as e:
-            return CheckFailure(e, f"Failed writable check for {device['name']}")
-        return CheckSuccess()
+            print(f"Failed to write to {device['name']}")
+            print_exception(e)
+            return False
+        return True

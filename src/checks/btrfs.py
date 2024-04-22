@@ -1,11 +1,11 @@
 from subprocess import PIPE, STDOUT, run
 
-from checks.check import AbstractCheck, CheckFailure, CheckResult, CheckSuccess
+from checks.check import Check, CheckFailure, CheckResult, CheckSuccess
 from lsblk import Device
 from umount import unmount_device
 
 
-class BtrfsCheck(AbstractCheck):
+class BtrfsCheck(Check):
 
     def _btrfs_check_device(self, device: Device, force: bool = False) -> CheckResult:
         name = device["name"]

@@ -38,7 +38,7 @@ class CheckSuccess(CheckResult):
         return f"SUCCESS"
 
 
-class AbstractCheck(ABC):
+class Check(ABC):
     """Abstract class for a check"""
 
     @classmethod
