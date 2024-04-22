@@ -206,7 +206,7 @@ def main():
     exit_on_fail = getenv("EXIT_ON_FAIL", "n").lower() in ("true", "1", "y")
 
     # Check all btrfs devices of at least min_size
-    n_failed = 0
+    failed_devices = []
     for device in get_block_devices():
         # Filter drives
         is_wrong_type = device["fstype"] not in allowed_fstypes
@@ -229,12 +229,15 @@ def main():
             print(f"Check failed for {device_human_name}")
             if exit_on_fail:
                 exit(1)
-            n_failed += 1
+            failed_devices.append(device_human_name)
 
     # Exit with an appropriate code
-    if n_failed == 0:
+    if len(failed_devices) == 0:
         exit(0)
     else:
+        print("Failed devices:")
+        for failed_device in failed_devices:
+            print(f"- {failed_device}")
         exit(1)
 
 
