@@ -1,7 +1,8 @@
+from argparse import ArgumentParser, Namespace
 from os import getenv
 
 from checks.btrfs import BtrfsReadOnlyForceCheck, BtrfsUnmountCheck
-from checks.check import AbstractCheck, CheckResult
+from checks.check import AbstractCheck, CheckFailure, CheckResult, CheckSuccess
 from checks.writable import WritableCheck
 from lsblk import Device, get_block_devices
 
@@ -22,63 +23,106 @@ def device_to_human(device: Device) -> str:
     return f"{device['name']} ({device['serial']})"
 
 
+checks: dict[str, AbstractCheck] = {
+    klass.get_check_type(): klass
+    for klass in (
+        BtrfsReadOnlyForceCheck,
+        BtrfsUnmountCheck,
+        WritableCheck,
+    )
+}
+
+
+class Args(Namespace):
+    skip_devices: list[str]
+    min_size: int
+    fstypes: list[str]
+    exit_on_fail: bool
+    check: AbstractCheck
+
+
+def parse_arguments() -> Args:
+    """Parse command line arguments"""
+    parser = ArgumentParser("Check block devices")
+    parser.add_argument(
+        "--skip-devices",
+        default="",
+        type=lambda devices: devices.split(","),
+        help="Comma separated list of device names to skip",
+    )
+    parser.add_argument(
+        "--min-size",
+        default="1T",
+        type=bytes_from_human,
+        help="Filter devices smaller than this size",
+    )
+    parser.add_argument(
+        "--fstypes",
+        default="btrfs",
+        type=lambda fstypes: fstypes.split(","),
+        help="Comma separated list of allowed file system types",
+    )
+    parser.add_argument(
+        "--exit-on-fail",
+        action="store_true",
+        help="Exit immediately on first failure",
+    )
+    parser.add_argument(
+        "check",
+        default=BtrfsReadOnlyForceCheck.get_check_type(),
+        choices=checks.keys(),
+        type=lambda check_type: checks[check_type],
+        help="Type of check to perform",
+    )
+    return parser.parse_args()
+
+
+def is_device_checkable(
+    device: Device,
+    allowed_fstypes: list[str],
+    min_size: int,
+    skipped_device_names: list[str],
+) -> bool:
+    return (
+        device["fstype"] in allowed_fstypes
+        and int(device["size"]) >= min_size
+        and device["name"] not in skipped_device_names
+    )
+
+
 def main():
-    # Get the skipped device names
-    skipped_device_names = getenv("SKIP_DEVICES", "").split(",")
 
-    # Get the filter min size
-    min_size_human_default = "1T"
-    min_size_human = getenv("MIN_SIZE", min_size_human_default)
-    if min_size_human.endswith("B"):
-        min_size_human = min_size_human[:-1]
-    min_size = bytes_from_human(min_size_human)
-
-    # Get the allowed file system types
-    allowed_fstypes = getenv("FSTYPES", "btrfs").split(",")
-
-    # Get the type of check to perform
-    checks: dict[str, AbstractCheck] = {
-        klass.get_check_type(): klass
-        for klass in (
-            BtrfsReadOnlyForceCheck,
-            BtrfsUnmountCheck,
-            WritableCheck,
-        )
-    }
-    default_check_type = BtrfsReadOnlyForceCheck.get_check_type()
-    env_check = getenv("CHECK", default_check_type)
-    try:
-        check = checks[env_check]
-    except KeyError:
-        print(f"Invalid check type: {env_check}")
-        print(f"Valid check types: {', '.join(checks.keys())}")
-        exit(1)
-    print(f"Running check: {check}")
-
-    # Get the exit_on_fail flag
-    exit_on_fail = getenv("EXIT_ON_FAIL", "n").lower() in ("true", "1", "y")
+    args: Args = parse_arguments()
+    print(f"Running check: {args.check.get_check_type()}")
 
     # Filter devices
-    checked_devices = (
-        device
-        for device in get_block_devices()
-        if (
-            device["fstype"] in allowed_fstypes
-            and int(device["size"]) >= min_size
-            and device["name"] not in skipped_device_names
-        )
-    )
+    devices = get_block_devices()
 
     # Run the checks
     results: dict[Device, CheckResult] = {}
-    for device in checked_devices:
-        print(f"Checking {device_to_human(device)}")
-        result = check().run(device)
-        if result:
+    for device in devices:
+        device_human_name = device_to_human(device)
+
+        # Skip devices that don't meet the criteria
+        if not is_device_checkable(
+            device, args.fstypes, args.min_size, args.skip_devices
+        ):
+            print(f"Skipping {device_human_name}")
             continue
-        if exit_on_fail:
-            exit(1)
-        result[device] = result
+
+        # Run the check
+        print(f"Checking {device_human_name}")
+        result = args.check().run(device)
+
+        # Store the result
+        match result:
+            case CheckSuccess():
+                print("Check passed")
+            case CheckFailure():
+                print("Check failed")
+                if args.exit_on_fail:
+                    break
+                result[device] = result
 
     # Early exit if all checks passed
     if all(result):
