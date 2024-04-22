@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, Namespace
+from typing import Callable
 
 from blkdiag.checks.btrfs import BtrfsReadOnlyForceCheck, BtrfsUnmountCheck
 from blkdiag.checks.check import Check, CheckFailure, CheckResult, CheckSuccess
@@ -62,6 +63,7 @@ def parse_arguments() -> Args:
     )
     parser.add_argument(
         "--exit-on-fail",
+        default=False,
         action="store_true",
         help="Exit immediately on first failure",
     )
