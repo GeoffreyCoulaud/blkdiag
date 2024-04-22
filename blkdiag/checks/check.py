@@ -43,8 +43,8 @@ class Check(ABC):
 
     @classmethod
     @abstractmethod
-    def get_check_type(cls) -> str:
-        """Return the check type, as a string"""
+    def get_check_name(cls) -> str:
+        """Return the check name, as a string"""
 
     @abstractmethod
     def run(self, device: Device) -> CheckResult:

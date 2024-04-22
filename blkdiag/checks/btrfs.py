@@ -34,7 +34,7 @@ class BtrfsCheck(Check):
 class BtrfsUnmountCheck(BtrfsCheck):
 
     @classmethod
-    def get_check_type(cls) -> str:
+    def get_check_name(cls) -> str:
         return "BTRFS"
 
     def __unmount_device(self, device: Device) -> CheckResult:
@@ -53,7 +53,7 @@ class BtrfsUnmountCheck(BtrfsCheck):
 class BtrfsReadOnlyForceCheck(BtrfsCheck):
 
     @classmethod
-    def get_check_type(cls) -> str:
+    def get_check_name(cls) -> str:
         return "BTRFS_RO"
 
     def run(self, device: Device) -> CheckResult:
