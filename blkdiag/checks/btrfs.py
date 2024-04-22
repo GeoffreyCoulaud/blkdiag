@@ -1,8 +1,8 @@
 from subprocess import PIPE, STDOUT, run
 
-from src.checks.check import Check, CheckFailure, CheckResult, CheckSuccess
-from src.lsblk import Device
-from src.umount import unmount_device
+from blkdiag.checks.check import Check, CheckFailure, CheckResult, CheckSuccess
+from blkdiag.lsblk import Device
+from blkdiag.umount import unmount_device
 
 
 class BtrfsCheck(Check):
