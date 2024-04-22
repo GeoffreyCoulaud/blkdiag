@@ -95,7 +95,7 @@ def main():
 
     # Run the checks
     check: Check = checks[args.check]()
-    results: dict[Device, CheckResult] = {}
+    results: list[tuple[Device, CheckResult]] = []
     print(f"Running check: {check.get_check_type()}")
     for device in devices:
         device_human_name = device_to_human(device)
@@ -112,7 +112,7 @@ def main():
         result = check.run(device)
 
         # Store the result
-        results[device] = result
+        results.append((device, result))
         match result:
             case CheckSuccess():
                 print("Check passed")
@@ -125,13 +125,13 @@ def main():
     if len(results) == 0:
         print("No check ran")
         exit(0)
-    if all(results.values()):
+    if all((result for _device, result in results)):
         print(f"Ran {len(results)} checks, all passed")
         exit(0)
 
     # Report failed devices
     print("Some checks failed:")
-    for device, result in results.items():
+    for device, result in results:
         device_human_name = device_to_human(device)
         print(f"{device_human_name}: {str(result)}")
     exit(1)
