@@ -112,7 +112,7 @@ def main():
         result = check.run(device)
 
         # Store the result
-        result[device] = result
+        results[device] = result
         match result:
             case CheckSuccess():
                 print("Check passed")
