@@ -36,7 +36,7 @@ class Args(Namespace):
     min_size: int
     fstypes: list[str]
     exit_on_fail: bool
-    check: Check
+    check: str
 
 
 def parse_arguments() -> Args:
@@ -67,9 +67,7 @@ def parse_arguments() -> Args:
     )
     parser.add_argument(
         "check",
-        default=BtrfsReadOnlyForceCheck.get_check_type(),
         choices=checks.keys(),
-        type=lambda check_type: checks[check_type],
         help="Type of check to perform",
     )
     return parser.parse_args()
@@ -91,13 +89,14 @@ def is_device_checkable(
 def main():
 
     args: Args = parse_arguments()
-    print(f"Running check: {args.check.get_check_type()}")
 
     # Filter devices
     devices = get_block_devices()
 
     # Run the checks
+    check: Check = checks[args.check]()
     results: dict[Device, CheckResult] = {}
+    print(f"Running check: {check.get_check_type()}")
     for device in devices:
         device_human_name = device_to_human(device)
 
@@ -110,7 +109,7 @@ def main():
 
         # Run the check
         print(f"Checking {device_human_name}")
-        result = args.check().run(device)
+        result = check.run(device)
 
         # Store the result
         match result:
@@ -123,8 +122,11 @@ def main():
                 result[device] = result
 
     # Early exit if all checks passed
-    if all(result):
-        print("All checks passed")
+    if len(results) == 0:
+        print("No check ran")
+        exit(0)
+    if all(results.values()):
+        print(f"Ran {len(results)} checks, all passed")
         exit(0)
 
     # Report failed devices

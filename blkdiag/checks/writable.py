@@ -16,6 +16,10 @@ from blkdiag.lsblk import Device
 
 class WritableCheck(Check):
 
+    @classmethod
+    def get_check_type(cls) -> str:
+        return "WRITABLE"
+
     def __get_mount_point(self, device: Device) -> Path:
         try:
             return Path(device["mountpoints"][0])

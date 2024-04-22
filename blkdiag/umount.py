@@ -1,6 +1,6 @@
 from subprocess import run
 
-from lsblk import Device
+from blkdiag.lsblk import Device
 
 
 def unmount_device(device: Device):
