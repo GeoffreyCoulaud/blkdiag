@@ -2,8 +2,8 @@ from os import unlink
 from pathlib import Path
 from traceback import print_exception
 
-from checks.check import Check, CheckFailure, CheckSuccess
-from errors import (
+from src.checks.check import Check, CheckFailure, CheckSuccess
+from src.errors import (
     CheckCreateError,
     CheckError,
     CheckNoMountPointError,
@@ -11,7 +11,7 @@ from errors import (
     CheckRemoveError,
     CheckWriteError,
 )
-from lsblk import Device
+from src.lsblk import Device
 
 
 class WritableCheck(Check):

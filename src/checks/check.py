@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from lsblk import Device
+from src.lsblk import Device
 
 
 class CheckResult(ABC):

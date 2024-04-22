@@ -1,10 +1,9 @@
 from argparse import ArgumentParser, Namespace
-from os import getenv
 
-from checks.btrfs import BtrfsReadOnlyForceCheck, BtrfsUnmountCheck
-from checks.check import Check, CheckFailure, CheckResult, CheckSuccess
-from checks.writable import WritableCheck
-from lsblk import Device, get_block_devices
+from src.checks.btrfs import BtrfsReadOnlyForceCheck, BtrfsUnmountCheck
+from src.checks.check import Check, CheckFailure, CheckResult, CheckSuccess
+from src.checks.writable import WritableCheck
+from src.lsblk import Device, get_block_devices
 
 
 def bytes_from_human(human: str) -> int:
