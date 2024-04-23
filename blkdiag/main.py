@@ -1,5 +1,4 @@
 from argparse import ArgumentParser, Namespace
-from typing import Callable
 
 from blkdiag.checks.btrfs import BtrfsReadOnlyForceCheck, BtrfsUnmountCheck
 from blkdiag.checks.check import Check, CheckFailure, CheckResult, CheckSuccess

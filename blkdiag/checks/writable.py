@@ -1,5 +1,6 @@
 from os import unlink
 from pathlib import Path
+from uuid import uuid4
 
 from blkdiag.checks.check import Check, CheckFailure, CheckSuccess
 from blkdiag.errors import (
@@ -28,8 +29,6 @@ class WritableCheck(Check):
     def __create_file(self, path: Path) -> None:
         try:
             open(path, "x").close()
-        except FileExistsError:
-            print(f"WARNING: Test file already exists")
         except IOError as e:
             raise CheckCreateError() from e
 
@@ -57,7 +56,7 @@ class WritableCheck(Check):
     def run(self, device: Device) -> bool:
         try:
             mount_point = self.__get_mount_point(device)
-            test_file_path = mount_point / "geoffrey-check-file.txt"
+            test_file_path = mount_point / f"blkdiag-{str(uuid4())}.txt"
             written_text = "test"
             self.__create_file(test_file_path)
             self.__write_to_file(test_file_path, written_text)
