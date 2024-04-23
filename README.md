@@ -3,16 +3,15 @@ Tools to perform diagnostics on storage devices
 
 ## What does `blkdiag` do ?
 
-This tool allows an administrator (assumed to have root privileges) to perform various sanity checks on block devices.  
-By default, `blkdiag` will run checks on block devices formatted as `btrfs` that are bigger than 1 TiB.  
+This tool allows an administrator (assumed to have root privileges) to perform various sanity checks on block devices. By default, `blkdiag` will run checks on block devices formatted as `btrfs` that are bigger than 1 TiB.  
 This is configurable with the CLI.
 
 Here is a list of available checks
 | Check | Description |
 | ----- | ----------- |
-| WRITABLE | Check that the disk is writable. Will create a file, write to it, read the content and verify it then delete the file |
-| BTRFS_RO | Runs `btrfs check --force` on the disk. Only use if you know that the disks are not being written to |
-| BTRFS | Unmounts the disk and runs `btrfs check` on it. Be careful, it doesn't remount the disk after checking |
+| WRITABLE | Check that the disk is writable.<br/>Will create a file, write to it, read the content and verify it then delete the file. |
+| BTRFS_RO | Runs `btrfs check --force` on the disk.<br/>Only use if you know that the disks are not being written to. |
+| BTRFS | Unmounts the disk and runs `btrfs check` on it.<br/>Be careful, it doesn't remount the disk after checking. |
 
 ## Usage
 
